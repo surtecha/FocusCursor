@@ -62,7 +62,7 @@ with mp_face_mesh.FaceMesh(
             # Position of centroid
             print("x={}, y={}".format(x, y))
 
-        cv2.imshow('Video feed', frame)
+        cv2.imshow('Pupil Tracking', frame)
 
         key = cv2.waitKey(1)
         if key == ord('q'):
