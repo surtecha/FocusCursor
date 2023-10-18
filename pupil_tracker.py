@@ -1,6 +1,16 @@
 import cv2
 import numpy as np
 import mediapipe as mp
+import pyautogui as pg
+
+pg.FAILSAFE = False
+
+current_x, current_y = 240, 220
+
+SMOOTHING_FACTOR = 0.7
+smoothed_x, smoothed_y = current_x, current_y
+
+pg.moveTo(current_x, current_y)
 
 mp_face_mesh = mp.solutions.face_mesh
 
@@ -47,8 +57,8 @@ with mp_face_mesh.FaceMesh(
             # (r_cx, r_cy), r_radius = cv2.minEnclosingCircle(mesh_points[RIGHT_IRIS])
             # center_left = np.array([l_cx, lcy], dtype=np.int32)
             # center_right = np.array([r_cx, r_cy], dtype=np.int32)
-            # cv2.circle(frame, center_left, int(l_radius), (0, 255, 0), 1, cv2.LINE_AA)
-            # cv2.circle(frame, center_right, int(r_radius), (0, 255, 0), 1, cv2.LINE_AA)
+            # cv2.circle(image, center_left, int(l_radius), (0, 255, 0), 1, cv2.LINE_AA)
+            # cv2.circle(image, center_right, int(r_radius), (0, 255, 0), 1, cv2.LINE_AA)
 
             # Storing location of pupils
             left_pupil_x, left_pupil_y = mesh_points[468]
@@ -61,10 +71,20 @@ with mp_face_mesh.FaceMesh(
             # Centroid of position of pupil
             x = (left_pupil_x + right_pupil_x) // 2
             y = (left_pupil_y + right_pupil_y) // 2
-            cv2.circle(image, (x, y), 2, (0, 255, 0), 2, cv2.LINE_4)
+
+            smoothed_x = SMOOTHING_FACTOR * smoothed_x + (1 - SMOOTHING_FACTOR) * x
+            smoothed_y = SMOOTHING_FACTOR * smoothed_y + (1 - SMOOTHING_FACTOR) * y
+
+            scaling_factor = 20
+
+            # pg.move((x - current_x) * scaling_factor, (y - current_y) * scaling_factor)
+            # current_x, current_y = x, y
+
+            pg.move(int(smoothed_x - current_x) * scaling_factor, int(smoothed_y - current_y) * scaling_factor)
+            current_x, current_y = smoothed_x, smoothed_y
 
             # Position of centroid
-            print("x={}, y={}".format(x, y))
+            print("x={}, y={}".format(int(smoothed_x), int(smoothed_y)))
 
         cv2.imshow('Pupil Tracking', image)
 
